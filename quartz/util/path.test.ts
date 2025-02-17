@@ -106,8 +106,9 @@ describe("transforms", () => {
         ["test.mp4", "test.mp4"],
         ["note with spaces.md", "note-with-spaces"],
         ["notes.with.dots.md", "notes.with.dots"],
-        ["test/special chars?.md", "test/special-chars-q"],
+        ["test/special chars?.md", "test/special-chars"],
         ["test/special chars #3.md", "test/special-chars-3"],
+        ["cool/what about r&d?.md", "cool/what-about-r-and-d"],
       ],
       path.slugifyFilePath,
       path.isFilePath,
@@ -156,6 +157,29 @@ describe("transforms", () => {
       path.isFullSlug,
       path.isRelativeURL,
     )
+  })
+
+  test("joinSegments", () => {
+    assert.strictEqual(path.joinSegments("a", "b"), "a/b")
+    assert.strictEqual(path.joinSegments("a/", "b"), "a/b")
+    assert.strictEqual(path.joinSegments("a", "b/"), "a/b/")
+    assert.strictEqual(path.joinSegments("a/", "b/"), "a/b/")
+
+    // preserve leading and trailing slashes
+    assert.strictEqual(path.joinSegments("/a", "b"), "/a/b")
+    assert.strictEqual(path.joinSegments("/a/", "b"), "/a/b")
+    assert.strictEqual(path.joinSegments("/a", "b/"), "/a/b/")
+    assert.strictEqual(path.joinSegments("/a/", "b/"), "/a/b/")
+
+    // lone slash
+    assert.strictEqual(path.joinSegments("/a/", "b", "/"), "/a/b/")
+    assert.strictEqual(path.joinSegments("a/", "b" + "/"), "a/b/")
+
+    // works with protocol specifiers
+    assert.strictEqual(path.joinSegments("https://example.com", "a"), "https://example.com/a")
+    assert.strictEqual(path.joinSegments("https://example.com/", "a"), "https://example.com/a")
+    assert.strictEqual(path.joinSegments("https://example.com", "a/"), "https://example.com/a/")
+    assert.strictEqual(path.joinSegments("https://example.com/", "a/"), "https://example.com/a/")
   })
 })
 

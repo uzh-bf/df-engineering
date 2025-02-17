@@ -30,7 +30,7 @@ Press "Save and deploy" and Cloudflare should have a deployed version of your si
 To add a custom domain, check out [Cloudflare's documentation](https://developers.cloudflare.com/pages/platform/custom-domains/).
 
 > [!warning]
-> Cloudflare Pages only allows shallow `git` clones so if you rely on `git` for timestamps, it is recommended you either add dates to your frontmatter (see [[authoring content#Syntax]]) or use another hosting provider.
+> Cloudflare Pages performs a shallow clone by default, so if you rely on `git` for timestamps, it is recommended that you add `git fetch --unshallow &&` to the beginning of the build command (e.g., `git fetch --unshallow && npx quartz build`).
 
 ## GitHub Pages
 
@@ -57,18 +57,18 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for git info
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18.14
+          node-version: 22
       - name: Install Dependencies
         run: npm ci
       - name: Build Quartz
         run: npx quartz build
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: public
 
@@ -81,7 +81,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 ```
 
 Then:
@@ -182,37 +182,33 @@ Using `docs.example.com` is an example of a subdomain. They're a simple way of c
 
 ## GitLab Pages
 
-In your local Quartz, create a new file `.gitlab-ci.yaml`.
+In your local Quartz, create a new file `.gitlab-ci.yml`.
 
-```yaml title=".gitlab-ci.yaml"
+```yaml title=".gitlab-ci.yml"
 stages:
   - build
   - deploy
 
-variables:
-  NODE_VERSION: "18.14"
+image: node:20
+cache: # Cache modules in between jobs
+  key: $CI_COMMIT_REF_SLUG
+  paths:
+    - .npm/
 
 build:
   stage: build
   rules:
     - if: '$CI_COMMIT_REF_NAME == "v4"'
   before_script:
-    - apt-get update -q && apt-get install -y nodejs npm
-    - npm install -g n
-    - n $NODE_VERSION
     - hash -r
-    - npm ci
+    - npm ci --cache .npm --prefer-offline
   script:
     - npx quartz build
   artifacts:
     paths:
       - public
-  cache:
-    paths:
-      - ~/.npm/
-    key: "${CI_COMMIT_REF_SLUG}-node-${CI_COMMIT_REF_NAME}"
   tags:
-    - docker
+    - gitlab-org-docker
 
 pages:
   stage: deploy
@@ -228,3 +224,65 @@ pages:
 When `.gitlab-ci.yaml` is committed, GitLab will build and deploy the website as a GitLab Page. You can find the url under `Deploy > Pages` in the sidebar.
 
 By default, the page is private and only visible when logged in to a GitLab account with access to the repository but can be opened in the settings under `Deploy` -> `Pages`.
+
+## Self-Hosting
+
+Copy the `public` directory to your web server and configure it to serve the files. You can use any web server to host your site. Since Quartz generates links that do not include the `.html` extension, you need to let your web server know how to deal with it.
+
+### Using Nginx
+
+Here's an example of how to do this with Nginx:
+
+```nginx title="nginx.conf"
+server {
+    listen 80;
+    server_name example.com;
+    root /path/to/quartz/public;
+    index index.html;
+    error_page 404 /404.html;
+
+    location / {
+        try_files $uri $uri.html $uri/ =404;
+    }
+}
+```
+
+### Using Apache
+
+Here's an example of how to do this with Apache:
+
+```apache title=".htaccess"
+RewriteEngine On
+
+ErrorDocument 404 /404.html
+
+# Rewrite rule for .html extension removal (with directory check)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# Handle directory requests explicitly
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.*)/$ $1/index.html [L]
+```
+
+Don't forget to activate brotli / gzip compression.
+
+### Using Caddy
+
+Here's and example of how to do this with Caddy:
+
+```caddy title="Caddyfile"
+example.com {
+    root * /path/to/quartz/public
+    try_files {path} {path}.html {path}/ =404
+    file_server
+    encode gzip
+
+    handle_errors {
+        rewrite * /{err.status_code}.html
+        file_server
+    }
+}
+```

@@ -27,9 +27,7 @@ function coerceDate(fp: string, d: any): Date {
 }
 
 type MaybeDate = undefined | string | number
-export const CreatedModifiedDate: QuartzTransformerPlugin<Partial<Options> | undefined> = (
-  userOpts,
-) => {
+export const CreatedModifiedDate: QuartzTransformerPlugin<Partial<Options>> = (userOpts) => {
   const opts = { ...defaultOptions, ...userOpts }
   return {
     name: "CreatedModifiedDate",
@@ -43,18 +41,16 @@ export const CreatedModifiedDate: QuartzTransformerPlugin<Partial<Options> | und
             let published: MaybeDate = undefined
 
             const fp = file.data.filePath!
-            const fullFp = path.posix.join(file.cwd, fp)
+            const fullFp = path.isAbsolute(fp) ? fp : path.posix.join(file.cwd, fp)
             for (const source of opts.priority) {
               if (source === "filesystem") {
                 const st = await fs.promises.stat(fullFp)
                 created ||= st.birthtimeMs
                 modified ||= st.mtimeMs
               } else if (source === "frontmatter" && file.data.frontmatter) {
-                created ||= file.data.frontmatter.date
-                modified ||= file.data.frontmatter.lastmod
-                modified ||= file.data.frontmatter.updated
-                modified ||= file.data.frontmatter["last-modified"]
-                published ||= file.data.frontmatter.publishDate
+                created ||= file.data.frontmatter.created as MaybeDate
+                modified ||= file.data.frontmatter.modified as MaybeDate
+                published ||= file.data.frontmatter.published as MaybeDate
               } else if (source === "git") {
                 if (!repo) {
                   // Get a reference to the main git repo.
