@@ -1,16 +1,15 @@
 {
-  "name": "@uzh-bf/oss",
-  "description": "Open Source at the Department of Banking and Finance, University of Zurich",
+  "name": "@uzh-df/df-engineering",
+  "description": "Open Source at the Department of Finance, University of Zurich",
   "version": "0.0.1",
   "type": "module",
   "maintainers": [
-    "Roland Schläfli <roland.schlaefli@bf.uzh.ch>"
+    "Roland Schläfli <roland.schlaefli@df.uzh.ch>"
   ],
-  "license": "MIT",
-  "homepage": "https://github.com/uzh-bf/oss-at-dbf",
+  "homepage": "https://github.com/uzh-bf/df-engineering",
   "repository": {
     "type": "git",
-    "url": "https://github.com/uzh-bf/oss-at-dbf"
+    "url": "https://github.com/uzh-bf/df-engineering"
   },
   "scripts": {
     "quartz": "./quartz/bootstrap-cli.mjs",
@@ -22,11 +21,7 @@
   },
   "engines": {
     "npm": ">=9.3.1",
-    "node": "20 || >=22"
-  },
-  "keywords": [],
-  "bin": {
-    "quartz": "./quartz/bootstrap-cli.mjs"
+    "node": "20"
   },
   "dependencies": {
     "@clack/prompts": "^0.10.0",
@@ -108,6 +103,6 @@
     "typescript": "^5.3.3"
   },
   "volta": {
-    "node": "20.10.0"
+    "node": "20.18.3"
   }
 }
