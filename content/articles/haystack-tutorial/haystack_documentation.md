@@ -710,4 +710,4 @@ response = website_rag.run(
 rag_response = response["llm"]["replies"][0].text
 print(rag_response)
 ```
-As with the PDF converter, the fetcher and converter components used for retrieving website data cannot convert more complicated forms of data, such as tables, photos, and hyperlinks, into text format. There are solutions such as [Firecrawl](https://www.firecrawl.dev) that can be implemented to address these issues.
+As was the case with the PDF converter in the previous section, the fetcher and converter components used for retrieving website data cannot convert more complicated forms of data, such as tables, photos, and hyperlinks, into text format. There are solutions such as [Firecrawl](https://www.firecrawl.dev) that can be implemented to address these issues.
