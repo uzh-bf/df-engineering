@@ -1,0 +1,14 @@
+[project]
+name = "haystack-tutorial"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "google-ai-haystack>=5.1.0",
+    "haystack-ai>=2.13.2",
+    "notebook>=7.4.2",
+    "pypdf>=5.5.0",
+    "trafilatura>=2.0.0",
+]
